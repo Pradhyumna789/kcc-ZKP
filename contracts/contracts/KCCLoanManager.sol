@@ -6,7 +6,7 @@ interface IKCCVerifier {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256[2] memory input
+        uint256[3] memory input  // ✅ FIXED
     ) external view returns (bool);
 }
 
@@ -49,17 +49,17 @@ contract KCCLoanManager {
     event FundsDisbursed(uint256 indexed loanId, uint256 amount, string billHash);
     
     modifier onlyIssuer() {
-        require(msg.sender == issuer, "Only issuer can perform this action");
+        require(msg.sender == issuer, "Only issuer");
         _;
     }
     
     modifier onlyBankOfficer() {
-        require(msg.sender == bankOfficer, "Only bank officer can perform this action");
+        require(msg.sender == bankOfficer, "Only bank officer");
         _;
     }
     
     modifier onlyAuditor() {
-        require(msg.sender == auditor, "Only auditor can perform this action");
+        require(msg.sender == auditor, "Only auditor");
         _;
     }
     
@@ -77,7 +77,7 @@ contract KCCLoanManager {
     }
     
     function issueCredential(address farmer) external onlyIssuer {
-        require(!farmerCredentials[farmer].isIssued, "Credential already issued");
+        require(!farmerCredentials[farmer].isIssued, "Already issued");
         
         farmerCredentials[farmer] = Credential({
             isIssued: true,
@@ -90,7 +90,7 @@ contract KCCLoanManager {
     }
     
     function revokeCredential(address farmer) external onlyIssuer {
-        require(farmerCredentials[farmer].isIssued, "No credential issued");
+        require(farmerCredentials[farmer].isIssued, "Not issued");
         require(!farmerCredentials[farmer].isRevoked, "Already revoked");
         
         farmerCredentials[farmer].isRevoked = true;
@@ -101,14 +101,14 @@ contract KCCLoanManager {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256[2] memory input,
+        uint256[3] memory input,  // ✅ FIXED TO 3
         uint256 requestedAmount,
         string memory loanCategory
     ) external returns (uint256) {
-        require(farmerCredentials[msg.sender].isIssued, "No credential issued");
-        require(!farmerCredentials[msg.sender].isRevoked, "Credential revoked");
+        require(farmerCredentials[msg.sender].isIssued, "No credential");
+        require(!farmerCredentials[msg.sender].isRevoked, "Revoked");
         
-        require(verifier.verifyProof(a, b, c, input), "Invalid ZK proof");
+        require(verifier.verifyProof(a, b, c, input), "Invalid proof");
         
         uint256 loanId = loanCounter++;
         
@@ -151,8 +151,8 @@ contract KCCLoanManager {
     
     function disburseFunds(uint256 loanId, uint256 amount, string memory billHash) external onlyAuditor {
         LoanApplication storage loan = loanApplications[loanId];
-        require(loan.status == LoanStatus.SANCTIONED, "Loan not sanctioned");
-        require(loan.disbursedAmount + amount <= loan.sanctionedAmount, "Exceeds sanctioned amount");
+        require(loan.status == LoanStatus.SANCTIONED, "Not sanctioned");
+        require(loan.disbursedAmount + amount <= loan.sanctionedAmount, "Exceeds limit");
         
         loan.disbursedAmount += amount;
         emit FundsDisbursed(loanId, amount, billHash);
