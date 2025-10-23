@@ -28,22 +28,22 @@ export default function CheckCredential() {
 
   return (
     <div className={`p-4 border rounded-lg ${credential?.isIssued ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-      <h3 className="font-bold mb-2">Credential Status</h3>
+      <h3 className="font-bold mb-2 text-black">Credential Status</h3>
       <div className="space-y-1 text-sm">
-        <p>
-          <strong>Issued:</strong> {credential?.isIssued ? '✅ Yes' : '❌ No'}
+        <p className="text-black">
+          <strong>Issued:</strong> {credential?.isIssued ? 'Yes' : 'No'}
         </p>
         {credential?.isIssued && (
           <>
-            <p>
-              <strong>Revoked:</strong> {credential?.isRevoked ? '⚠️ Yes' : '✅ No'}
+            <p className="text-black">
+              <strong>Revoked:</strong> {credential?.isRevoked ? 'Yes' : 'No'}
             </p>
             <p className="text-xs text-gray-600">Issued at: {new Date(Number(credential.issuedAt) * 1000).toLocaleString()}</p>
           </>
         )}
       </div>
 
-      {!credential?.isIssued && <p className="text-red-600 text-sm mt-2">⚠️ You need a credential to apply for loans. Contact KCC authority.</p>}
+      {!credential?.isIssued && <p className="text-red-600 text-sm mt-2">You need a credential to apply for loans. Contact KCC authority.</p>}
     </div>
   )
 }
